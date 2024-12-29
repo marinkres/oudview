@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Droplets, Wind, Coins } from "lucide-react";
+import { Droplets, Wind, Coins, Calendar } from "lucide-react";
 
 interface PerfumeCardProps {
   id?: string;
@@ -15,6 +15,7 @@ interface PerfumeCardProps {
   priceValue?: number;
   gender?: "Masculine" | "Feminine" | "Unisex";
   imageUrl?: string;
+  year?: number;
 }
 
 const PerfumeCard = ({
@@ -28,6 +29,7 @@ const PerfumeCard = ({
   sillage = 7,
   priceValue = 4,
   gender = "Unisex",
+  year = 2020,
 }: PerfumeCardProps) => {
   const navigate = useNavigate();
 
@@ -56,9 +58,13 @@ const PerfumeCard = ({
     >
       {/* Main card with hover effect */}
       <div className="bg-card rounded-lg p-6 transition-all duration-500 group-hover:shadow-lg group-hover:translate-x-1 group-hover:-translate-y-1">
-        {/* Gender indicator */}
-        <div className="absolute top-3 right-3 text-xs text-muted-foreground">
-          {gender}
+        {/* Gender and Year indicator */}
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-xs text-muted-foreground">{gender}</span>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            {year}
+          </div>
         </div>
 
         <div className="space-y-6">
