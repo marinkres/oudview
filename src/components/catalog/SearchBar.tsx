@@ -2,6 +2,7 @@ import React from "react";
 import { Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { perfumes } from "@/lib/data/perfumes";
 import {
   Select,
   SelectContent,
@@ -30,11 +31,22 @@ const SearchBar = ({
   onSearch = () => {},
   onFilterChange = () => {},
 }: SearchBarProps) => {
-  const defaultFilters: SearchFilters = {
-    notes: [],
-    brand: "",
-    concentration: "",
-  };
+  // Get unique brands
+  const brands = Array.from(new Set(perfumes.map((p) => p.brand)));
+
+  // Get unique notes
+  const allNotes = new Set<string>();
+  perfumes.forEach((p) => {
+    [...p.topNotes, ...p.heartNotes, ...p.baseNotes].forEach((note) => {
+      allNotes.add(note);
+    });
+  });
+  const notes = Array.from(allNotes);
+
+  // Get unique concentrations
+  const concentrations = Array.from(
+    new Set(perfumes.map((p) => p.concentration)),
+  );
 
   return (
     <div className="w-full h-20 bg-background border-b flex items-center px-6 sticky top-0 z-10">
@@ -60,17 +72,17 @@ const SearchBar = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Brand</label>
                 <Select
-                  onValueChange={(value) =>
-                    onFilterChange({ ...defaultFilters, brand: value })
-                  }
+                  onValueChange={(value) => onFilterChange({ brand: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select brand" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="luxe">Luxe Parfums</SelectItem>
-                    <SelectItem value="elegant">Elegant Scents</SelectItem>
-                    <SelectItem value="nature">Nature's Essence</SelectItem>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand} value={brand}>
+                        {brand}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -79,16 +91,18 @@ const SearchBar = ({
                 <label className="text-sm font-medium">Concentration</label>
                 <Select
                   onValueChange={(value) =>
-                    onFilterChange({ ...defaultFilters, concentration: value })
+                    onFilterChange({ concentration: value })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select concentration" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="edp">Eau de Parfum (EDP)</SelectItem>
-                    <SelectItem value="edt">Eau de Toilette (EDT)</SelectItem>
-                    <SelectItem value="edc">Eau de Cologne (EDC)</SelectItem>
+                    {concentrations.map((concentration) => (
+                      <SelectItem key={concentration} value={concentration}>
+                        {concentration}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -96,18 +110,17 @@ const SearchBar = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Notes</label>
                 <Select
-                  onValueChange={(value) =>
-                    onFilterChange({ ...defaultFilters, notes: [value] })
-                  }
+                  onValueChange={(value) => onFilterChange({ notes: [value] })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select notes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="floral">Floral</SelectItem>
-                    <SelectItem value="woody">Woody</SelectItem>
-                    <SelectItem value="oriental">Oriental</SelectItem>
-                    <SelectItem value="fresh">Fresh</SelectItem>
+                    {notes.map((note) => (
+                      <SelectItem key={note} value={note}>
+                        {note}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -1,40 +1,18 @@
 import React from "react";
 import PerfumeCard from "./PerfumeCard";
-import { Star } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Perfume,
+  featuredPerfume,
+  perfumes as defaultPerfumes,
+} from "@/lib/data/perfumes";
 
 interface PerfumeGridProps {
-  perfumes?: Array<{
-    id: string;
-    name: string;
-    brand: string;
-    topNotes: string[];
-    heartNotes: string[];
-    baseNotes: string[];
-    concentration: string;
-    longevity: number;
-    sillage: number;
-    priceValue: number;
-    gender: "Masculine" | "Feminine" | "Unisex";
-    imageUrl: string;
-  }>;
+  perfumes?: Perfume[];
 }
 
 const FragranceOfTheDay = () => {
-  const fragrance = {
-    id: "featured",
-    name: "Royal Oud",
-    brand: "Creed",
-    topNotes: ["Pink Pepper", "Lemon"],
-    heartNotes: ["Galbanum", "Cedar"],
-    baseNotes: ["Oud", "Sandalwood"],
-    concentration: "EDP",
-    longevity: 9,
-    sillage: 8,
-    priceValue: 5,
-    gender: "Unisex",
-    imageUrl: "https://images.unsplash.com/photo-1590736969955-71cc94801759",
-  };
-
   return (
     <div className="w-full bg-black/5 rounded-xl p-8 mb-12">
       <div className="max-w-7xl mx-auto">
@@ -46,20 +24,19 @@ const FragranceOfTheDay = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           <div className="space-y-6">
             <div>
-              <h3 className="text-3xl font-light">{fragrance.name}</h3>
+              <h3 className="text-3xl font-light">{featuredPerfume.name}</h3>
               <p className="text-xl text-muted-foreground mt-2">
-                {fragrance.brand}
+                {featuredPerfume.brand}
               </p>
             </div>
             <p className="text-lg text-muted-foreground">
-              A masterful blend of precious woods, featuring the legendary Oud
-              wood complemented by fresh spices and aromatic cedar.
+              {featuredPerfume.description}
             </p>
             <div className="flex flex-wrap gap-2">
               {[
-                ...fragrance.topNotes,
-                ...fragrance.heartNotes,
-                ...fragrance.baseNotes,
+                ...featuredPerfume.topNotes,
+                ...featuredPerfume.heartNotes,
+                ...featuredPerfume.baseNotes,
               ].map((note, i) => (
                 <span
                   key={i}
@@ -71,7 +48,7 @@ const FragranceOfTheDay = () => {
             </div>
           </div>
           <div className="flex justify-center lg:justify-end">
-            <PerfumeCard {...fragrance} />
+            <PerfumeCard {...featuredPerfume} />
           </div>
         </div>
       </div>
@@ -79,64 +56,64 @@ const FragranceOfTheDay = () => {
   );
 };
 
-const PerfumeGrid = ({
-  perfumes = [
-    {
-      id: "1",
-      name: "Midnight Rose",
-      brand: "Luxury Scents",
-      topNotes: ["Bergamot", "Pink Pepper"],
-      heartNotes: ["Rose", "Peony"],
-      baseNotes: ["Vanilla", "Musk"],
-      concentration: "EDP",
-      longevity: 7,
-      sillage: 6,
-      priceValue: 3,
-      gender: "Feminine",
-      imageUrl: "https://images.unsplash.com/photo-1523293182086-7651a899d37f",
-    },
-    {
-      id: "2",
-      name: "Ocean Breeze",
-      brand: "Fresh Fragrances",
-      topNotes: ["Sea Salt", "Citrus"],
-      heartNotes: ["Lavender", "Sage"],
-      baseNotes: ["Amber", "Musk"],
-      concentration: "EDT",
-      longevity: 6,
-      sillage: 5,
-      priceValue: 2,
-      gender: "Unisex",
-      imageUrl: "https://images.unsplash.com/photo-1541643600914-78b084683601",
-    },
-    {
-      id: "3",
-      name: "Velvet Oud",
-      brand: "Oriental Perfumes",
-      topNotes: ["Saffron", "Leather"],
-      heartNotes: ["Oud", "Amber"],
-      baseNotes: ["Sandalwood", "Musk"],
-      concentration: "Parfum",
-      longevity: 9,
-      sillage: 8,
-      priceValue: 5,
-      gender: "Masculine",
-      imageUrl: "https://images.unsplash.com/photo-1590736969955-71cc94801759",
-    },
-  ],
-}: PerfumeGridProps) => {
+const PerfumeGrid = ({ perfumes = defaultPerfumes }: PerfumeGridProps) => {
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(perfumes.length / itemsPerPage);
+
+  const currentPerfumes = perfumes.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
   return (
     <div className="w-full min-h-[902px] bg-background px-8 py-12">
       <FragranceOfTheDay />
 
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-          {perfumes.map((perfume) => (
-            <div key={perfume.id} className="flex justify-center">
-              <PerfumeCard {...perfume} />
+        {perfumes.length === 0 ? (
+          <div className="text-center text-muted-foreground py-12">
+            No fragrances found matching your search criteria.
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-8">
+              {currentPerfumes.map((perfume) => (
+                <div key={perfume.id} className="flex justify-center">
+                  <PerfumeCard {...perfume} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-8">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
