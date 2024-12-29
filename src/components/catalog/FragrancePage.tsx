@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,11 +14,15 @@ import { Button } from "@/components/ui/button";
 import Header from "./Header";
 import Footer from "./Footer";
 import { perfumes, noteColors } from "@/lib/data/perfumes";
-import BottleDesign from "./BottleDesign";
 
 const FragrancePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // Scroll to top when the component is mounted or when `id` changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
   const fragrance = perfumes.find((p) => p.id === id) || {
     name: "Fragrance Not Found",
@@ -39,7 +43,7 @@ const FragrancePage = () => {
     icon: React.ReactNode,
     label: string,
     value: number,
-    max: number = 10,
+    max: number = 10
   ) => (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -50,7 +54,9 @@ const FragrancePage = () => {
         {Array.from({ length: max }).map((_, i) => (
           <div
             key={i}
-            className={`w-6 h-2 rounded-sm transition-colors ${i < value ? "bg-primary" : "bg-primary/10"}`}
+            className={`w-6 h-2 rounded-sm transition-colors ${
+              i < value ? "bg-primary" : "bg-primary/10"
+            }`}
           />
         ))}
       </div>
@@ -64,7 +70,9 @@ const FragrancePage = () => {
         {notes.map((note, i) => (
           <span
             key={i}
-            className={`px-3 py-1.5 rounded-full text-sm text-gray-700 transition-colors ${noteColors[note] || "bg-gray-100"}`}
+            className={`px-3 py-1.5 rounded-full text-sm text-gray-700 transition-colors ${
+              noteColors[note] || "bg-gray-100"
+            }`}
           >
             {note}
           </span>
@@ -85,7 +93,7 @@ const FragrancePage = () => {
           </Button>
 
           <div className="space-y-8">
-            {/* Header Section with Bottle Design */}
+            {/* Header Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
               <div className="col-span-4 space-y-4">
                 <div className="flex justify-between items-start">
@@ -111,8 +119,6 @@ const FragrancePage = () => {
                   {fragrance.description}
                 </p>
               </div>
-
-             
             </div>
 
             {/* Quick Stats */}
@@ -170,18 +176,18 @@ const FragrancePage = () => {
               {renderMetric(
                 <Droplets className="h-5 w-5" />,
                 "Longevity",
-                fragrance.longevity,
+                fragrance.longevity
               )}
               {renderMetric(
                 <Wind className="h-5 w-5" />,
                 "Sillage",
-                fragrance.sillage,
+                fragrance.sillage
               )}
               {renderMetric(
                 <Coins className="h-5 w-5" />,
                 "Value for Money",
                 fragrance.priceValue,
-                5,
+                5
               )}
             </div>
           </div>
