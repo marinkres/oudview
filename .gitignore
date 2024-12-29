@@ -11,7 +11,10 @@ node_modules/*
 dist
 dist-ssr
 *.local
-
+oudview\node_modules
+oudview/node_modules
+oudview\node_modules\*
+oudview/node_modules/*
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

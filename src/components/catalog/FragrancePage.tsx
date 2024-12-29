@@ -87,7 +87,7 @@ const FragrancePage = () => {
           <div className="space-y-8">
             {/* Header Section with Bottle Design */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-              <div className="col-span-2 space-y-4">
+              <div className="col-span-4 space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <h1 className="text-4xl font-light tracking-tight">
@@ -112,16 +112,7 @@ const FragrancePage = () => {
                 </p>
               </div>
 
-              {/* Bottle Design */}
-              <div className="flex justify-center items-start pt-4">
-                <div className="relative group">
-                  <BottleDesign
-                    id={fragrance.id}
-                    className="w-32 h-48 text-primary/70 group-hover:text-primary transition-colors duration-300"
-                  />
-                  <div className="absolute inset-0 bg-primary/5 -z-10 rounded-lg transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                </div>
-              </div>
+             
             </div>
 
             {/* Quick Stats */}
