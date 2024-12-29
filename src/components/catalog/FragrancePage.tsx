@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -39,6 +39,24 @@ const FragrancePage = () => {
     year: 0,
   };
 
+  const [reviews, setReviews] = useState<any[]>([
+    // Sample reviews (can be replaced with data from an API or database)
+    {
+      username: "Marko03",
+      sillage: 4,
+      longevity: 3,
+      valueForMoney: 5,
+      comment: "Nako...",
+    },
+    {
+      username: "JanicAAA",
+      sillage: 5,
+      longevity: 5,
+      valueForMoney: 4,
+      comment: "Dobraaaa",
+    },
+  ]);
+
   const renderMetric = (
     icon: React.ReactNode,
     label: string,
@@ -70,9 +88,7 @@ const FragrancePage = () => {
         {notes.map((note, i) => (
           <span
             key={i}
-            className={`px-3 py-1.5 rounded-full text-sm text-gray-700 transition-colors ${
-              noteColors[note] || "bg-gray-100"
-            }`}
+            className={`px-3 py-1.5 rounded-full text-sm text-gray-700 transition-colors ${noteColors[note] || "bg-gray-100"}`}
           >
             {note}
           </span>
@@ -126,12 +142,8 @@ const FragrancePage = () => {
               <div className="flex items-center gap-2">
                 <Beaker className="h-5 w-5 text-primary/70" />
                 <div>
-                  <div className="text-sm font-medium">
-                    {fragrance.concentration}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Concentration
-                  </div>
+                  <div className="text-sm font-medium">{fragrance.concentration}</div>
+                  <div className="text-xs text-muted-foreground">Concentration</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -145,20 +157,14 @@ const FragrancePage = () => {
                 <Star className="h-5 w-5 text-primary/70" />
                 <div>
                   <div className="text-sm font-medium">{fragrance.year}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Release Year
-                  </div>
+                  <div className="text-xs text-muted-foreground">Release Year</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Coins className="h-5 w-5 text-primary/70" />
                 <div>
-                  <div className="text-sm font-medium">
-                    {"$".repeat(fragrance.priceValue)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Price Range
-                  </div>
+                  <div className="text-sm font-medium">{"$".repeat(fragrance.priceValue)}</div>
+                  <div className="text-xs text-muted-foreground">Price Range</div>
                 </div>
               </div>
             </div>
@@ -189,6 +195,35 @@ const FragrancePage = () => {
                 fragrance.priceValue,
                 5
               )}
+            </div>
+
+            {/* Reviews Section */}
+            <div className="space-y-8 pt-8 border-t">
+              <h3 className="text-lg font-medium">Reviews</h3>
+
+              {/* Sign In / Sign Up Buttons */}
+              <div className="flex flex-col justify-center items-center space-y-4 py-8">
+                <Button variant="outline" className="w-36">
+                  Sign In
+                </Button>
+              </div>
+
+              {/* Display Reviews */}
+              <div className="space-y-4">
+                {reviews.map((review, index) => (
+                  <div key={index} className="p-4 border rounded-md">
+                    <div className="flex items-center gap-2">
+                      <strong>{review.username}</strong>
+                    </div>
+                    <div className="mt-2 text-muted-foreground">
+                      <p><strong>Sillage:</strong> {review.sillage}/5</p>
+                      <p><strong>Longevity:</strong> {review.longevity}/5</p>
+                      <p><strong>Value for Money:</strong> {review.valueForMoney}/5</p>
+                    </div>
+                    <p className="mt-2 text-muted-foreground">{review.comment}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
