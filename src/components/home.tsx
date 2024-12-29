@@ -75,7 +75,7 @@ const Home = () => {
         
         {/* Fragrance of the Day and AI Recommendations */}
         <SearchBar onSearch={handleSearch} onFilterChange={handleFilterChange} />
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6 mt-12">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-0 mt-8">
           <AIRecommendationSection />
           <FragranceOfTheDay />
         </div>
