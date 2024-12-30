@@ -104,6 +104,11 @@ const ProfilePage = () => {
       return;
     }
 
+    if (userCollection.some((fragrance) => fragrance.id === fragranceId)) {
+      console.error("This fragrance is already in your collection");
+      return;
+    }
+
     const addFragrance = async () => {
       const { error } = await supabase
         .from("collections")
@@ -120,6 +125,27 @@ const ProfilePage = () => {
     };
 
     addFragrance();
+  };
+
+  const handleDeleteFromCollection = async (fragranceId: string) => {
+    if (!currentUserId || currentUserId !== id) {
+      console.error("You can only delete fragrances from your own collection");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("collections")
+      .delete()
+      .eq("user_id", currentUserId)
+      .eq("fragrance_id", fragranceId);
+
+    if (error) {
+      console.error("Error deleting fragrance from collection", error);
+    } else {
+      setUserCollection((prevCollection) =>
+        prevCollection.filter((fragrance) => fragrance.id !== fragranceId)
+      );
+    }
   };
 
   return (
@@ -184,7 +210,6 @@ const ProfilePage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {userCollection.map((fragrance) => (
                       <Card key={fragrance.id} className="overflow-hidden">
- 
                         <CardContent className="p-4">
                           <h3 className="text-lg font-semibold mb-2">{fragrance.name}</h3>
                           <p className="text-sm text-muted-foreground mb-2">{fragrance.brand}</p>
@@ -192,6 +217,16 @@ const ProfilePage = () => {
                             <span>{fragrance.category}</span>
                             <span>{fragrance.release_year}</span>
                           </div>
+                          {currentUserId === id && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteFromCollection(fragrance.id)}
+                              className="mt-2"
+                            >
+                              Delete
+                            </Button>
+                          )}
                         </CardContent>
                       </Card>
                     ))}
