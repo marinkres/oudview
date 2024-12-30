@@ -37,7 +37,7 @@ const SearchPage = () => {
             onFilterChange={handleFilterChange}
           />
           <div className="mt-8">
-            <PerfumeGrid />
+            <PerfumeGrid searchTerm={searchTerm} filters={filters} />
           </div>
         </div>
       </main>

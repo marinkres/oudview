@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
   Droplets,
@@ -9,6 +9,9 @@ import {
   Beaker,
   Users,
   Star,
+  MoreVertical,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +23,19 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
 import { useToast } from "@/components/ui/use-toast";
 import { noteColors } from "@/lib/data/perfumes";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const FragrancePage = () => {
   const { id } = useParams();
@@ -28,6 +44,8 @@ const FragrancePage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [editingReview, setEditingReview] = useState<any>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [newReview, setNewReview] = useState({
     comment: "",
     longevity: 5,
@@ -119,6 +137,69 @@ const FragrancePage = () => {
     },
   });
 
+  const updateReviewMutation = useMutation({
+    mutationFn: async (reviewData: any) => {
+      const { error } = await supabase
+        .from("reviews")
+        .update({
+          comment: reviewData.comment,
+          longevity: reviewData.longevity,
+          sillage: reviewData.sillage,
+          value_for_money: reviewData.valueForMoney,
+          rating: Math.round(
+            (reviewData.longevity +
+              reviewData.sillage +
+              reviewData.valueForMoney) /
+              3,
+          ),
+        })
+        .eq("id", reviewData.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews", id] });
+      setShowEditDialog(false);
+      setEditingReview(null);
+      toast({
+        title: "Review updated",
+        description: "Your review has been updated successfully!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteReviewMutation = useMutation({
+    mutationFn: async (reviewId: string) => {
+      const { error } = await supabase
+        .from("reviews")
+        .delete()
+        .eq("id", reviewId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews", id] });
+      toast({
+        title: "Review deleted",
+        description: "Your review has been deleted successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleReviewSubmit = () => {
     if (!user) {
       setShowAuthModal(true);
@@ -135,6 +216,20 @@ const FragrancePage = () => {
     }
 
     createReviewMutation.mutate(newReview);
+  };
+
+  const handleEditClick = (review: any) => {
+    setEditingReview({
+      ...review,
+      valueForMoney: review.value_for_money,
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleDeleteClick = (reviewId: string) => {
+    if (confirm("Are you sure you want to delete this review?")) {
+      deleteReviewMutation.mutate(reviewId);
+    }
   };
 
   const renderMetric = (
@@ -373,8 +468,37 @@ const FragrancePage = () => {
                 <div className="space-y-4">
                   {reviews?.map((review) => (
                     <div key={review.id} className="p-4 border rounded-md">
-                      <div className="flex items-center gap-2">
-                        <strong>{review.profiles?.username}</strong>
+                      <div className="flex items-center justify-between">
+                        <Link
+                          to={`/profile/${review.user_id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {review.profiles?.username}
+                        </Link>
+                        {user?.id === review.user_id && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleEditClick(review)}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => handleDeleteClick(review.id)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                       <div className="mt-2 text-muted-foreground">
                         <p>
@@ -405,6 +529,73 @@ const FragrancePage = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
+
+      {/* Edit Review Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Review</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            <Textarea
+              placeholder="Write your review..."
+              value={editingReview?.comment || ""}
+              onChange={(e) =>
+                setEditingReview((prev: any) => ({
+                  ...prev,
+                  comment: e.target.value,
+                }))
+              }
+            />
+            <div className="space-y-4">
+              {renderMetric(
+                <Droplets className="h-4 w-4" />,
+                "Longevity",
+                editingReview?.longevity || 5,
+                10,
+                (value) =>
+                  setEditingReview((prev: any) => ({
+                    ...prev,
+                    longevity: value,
+                  })),
+              )}
+              {renderMetric(
+                <Wind className="h-4 w-4" />,
+                "Sillage",
+                editingReview?.sillage || 5,
+                10,
+                (value) =>
+                  setEditingReview((prev: any) => ({
+                    ...prev,
+                    sillage: value,
+                  })),
+              )}
+              {renderMetric(
+                <Coins className="h-4 w-4" />,
+                "Value for Money",
+                editingReview?.valueForMoney || 3,
+                5,
+                (value) =>
+                  setEditingReview((prev: any) => ({
+                    ...prev,
+                    valueForMoney: value,
+                  })),
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => updateReviewMutation.mutate(editingReview)}
+              disabled={updateReviewMutation.isPending}
+            >
+              {updateReviewMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
