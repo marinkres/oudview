@@ -6,6 +6,7 @@ import AuthModal from "@/components/auth/AuthModal";
 import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
+import { LogOut } from "lucide-react"; // Import LogOut icon
 
 const Header = () => {
   const { user } = useAuth();
@@ -73,13 +74,13 @@ const Header = () => {
               Profile
             </Link>
 
-            {/* Logout Button */}
+            {/* Logout Icon Button */}
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="text-lg font-small text-muted-foreground hover:underline transition-all"
+              className="p-0 text-lg font-small text-muted-foreground hover:underline transition-all"
             >
-              Logout
+              <LogOut className="h-6 w-6" /> {/* Logout icon */}
             </Button>
           </div>
         ) : (
