@@ -15,7 +15,7 @@ const Header = () => {
       {/* Navigation Links */}
       <nav className="flex gap-8 mt-4">
         <Link
-          to="/#"
+          to="/search"
           className="text-lg font-small underlinetext-muted-foreground hover:underline transition-all"
         >
           Search
