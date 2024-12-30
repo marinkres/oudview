@@ -84,13 +84,13 @@ const Header = () => {
             </Button>
           </div>
         ) : (
-          <Button
-            variant="ghost"
+          <Link
+            to="#"
             onClick={() => setShowAuthModal(true)}
             className="text-lg font-small text-muted-foreground hover:underline transition-all"
           >
             Login
-          </Button>
+          </Link>
         )}
       </nav>
 
