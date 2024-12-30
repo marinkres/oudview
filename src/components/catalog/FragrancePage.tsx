@@ -11,57 +11,138 @@ import {
   Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import Header from "./Header";
 import Footer from "./Footer";
-import { perfumes, noteColors } from "@/lib/data/perfumes";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/hooks/useAuth";
+import AuthModal from "../auth/AuthModal";
+import { useToast } from "@/components/ui/use-toast";
+import { noteColors } from "@/lib/data/perfumes";
 
 const FragrancePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [newReview, setNewReview] = useState({
+    comment: "",
+    longevity: 5,
+    sillage: 5,
+    valueForMoney: 3,
+  });
 
   // Scroll to top when the component is mounted or when `id` changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  const fragrance = perfumes.find((p) => p.id === id) || {
-    name: "Fragrance Not Found",
-    brand: "Unknown",
-    description: "This fragrance could not be found.",
-    topNotes: [],
-    heartNotes: [],
-    baseNotes: [],
-    concentration: "N/A",
-    longevity: 0,
-    sillage: 0,
-    priceValue: 0,
-    gender: "Unisex",
-    year: 0,
-  };
+  const { data: fragrance, isLoading: isLoadingFragrance } = useQuery({
+    queryKey: ["fragrance", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fragrances")
+        .select()
+        .eq("id", id)
+        .single();
 
-  const [reviews, setReviews] = useState<any[]>([
-    // Sample reviews (can be replaced with data from an API or database)
-    {
-      username: "Marko03",
-      sillage: 4,
-      longevity: 3,
-      valueForMoney: 5,
-      comment: "Nako...",
+      if (error) throw error;
+      return data;
     },
-    {
-      username: "JanicAAA",
-      sillage: 5,
-      longevity: 5,
-      valueForMoney: 4,
-      comment: "Dobraaaa",
+  });
+
+  const { data: reviews, isLoading: isLoadingReviews } = useQuery({
+    queryKey: ["reviews", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select(
+          `
+          *,
+          profiles:user_id (username)
+        `,
+        )
+        .eq("fragrance_id", id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
     },
-  ]);
+  });
+
+  const createReviewMutation = useMutation({
+    mutationFn: async (reviewData: {
+      comment: string;
+      longevity: number;
+      sillage: number;
+      valueForMoney: number;
+    }) => {
+      const { error } = await supabase.from("reviews").insert({
+        user_id: user?.id,
+        fragrance_id: id,
+        comment: reviewData.comment,
+        longevity: reviewData.longevity,
+        sillage: reviewData.sillage,
+        value_for_money: reviewData.valueForMoney,
+        rating: Math.round(
+          (reviewData.longevity +
+            reviewData.sillage +
+            reviewData.valueForMoney) /
+            3,
+        ),
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews", id] });
+      setNewReview({
+        comment: "",
+        longevity: 5,
+        sillage: 5,
+        valueForMoney: 3,
+      });
+      toast({
+        title: "Review submitted",
+        description: "Thank you for sharing your thoughts!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleReviewSubmit = () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (!newReview.comment) {
+      toast({
+        title: "Error",
+        description: "Please write a comment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createReviewMutation.mutate(newReview);
+  };
 
   const renderMetric = (
     icon: React.ReactNode,
     label: string,
     value: number,
-    max: number = 10
+    max: number = 10,
+    onChange?: (value: number) => void,
   ) => (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -72,9 +153,10 @@ const FragrancePage = () => {
         {Array.from({ length: max }).map((_, i) => (
           <div
             key={i}
+            onClick={() => onChange?.(i + 1)}
             className={`w-6 h-2 rounded-sm transition-colors ${
               i < value ? "bg-primary" : "bg-primary/10"
-            }`}
+            } ${onChange ? "cursor-pointer hover:bg-primary/50" : ""}`}
           />
         ))}
       </div>
@@ -96,6 +178,14 @@ const FragrancePage = () => {
       </div>
     </div>
   );
+
+  if (isLoadingFragrance) {
+    return <div>Loading...</div>;
+  }
+
+  if (!fragrance) {
+    return <div>Fragrance not found</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -142,8 +232,12 @@ const FragrancePage = () => {
               <div className="flex items-center gap-2">
                 <Beaker className="h-5 w-5 text-primary/70" />
                 <div>
-                  <div className="text-sm font-medium">{fragrance.concentration}</div>
-                  <div className="text-xs text-muted-foreground">Concentration</div>
+                  <div className="text-sm font-medium">
+                    {fragrance.concentration}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Concentration
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -157,23 +251,29 @@ const FragrancePage = () => {
                 <Star className="h-5 w-5 text-primary/70" />
                 <div>
                   <div className="text-sm font-medium">{fragrance.year}</div>
-                  <div className="text-xs text-muted-foreground">Release Year</div>
+                  <div className="text-xs text-muted-foreground">
+                    Release Year
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Coins className="h-5 w-5 text-primary/70" />
                 <div>
-                  <div className="text-sm font-medium">{"$".repeat(fragrance.priceValue)}</div>
-                  <div className="text-xs text-muted-foreground">Price Range</div>
+                  <div className="text-sm font-medium">
+                    {"$".repeat(fragrance.price_value)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Price Range
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Notes Pyramid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {renderNoteSection("Top Notes", fragrance.topNotes)}
-              {renderNoteSection("Heart Notes", fragrance.heartNotes)}
-              {renderNoteSection("Base Notes", fragrance.baseNotes)}
+              {renderNoteSection("Top Notes", fragrance.top_notes)}
+              {renderNoteSection("Heart Notes", fragrance.heart_notes)}
+              {renderNoteSection("Base Notes", fragrance.base_notes)}
             </div>
 
             {/* Performance Metrics */}
@@ -182,18 +282,18 @@ const FragrancePage = () => {
               {renderMetric(
                 <Droplets className="h-5 w-5" />,
                 "Longevity",
-                fragrance.longevity
+                fragrance.longevity,
               )}
               {renderMetric(
                 <Wind className="h-5 w-5" />,
                 "Sillage",
-                fragrance.sillage
+                fragrance.sillage,
               )}
               {renderMetric(
                 <Coins className="h-5 w-5" />,
                 "Value for Money",
-                fragrance.priceValue,
-                5
+                fragrance.price_value,
+                5,
               )}
             </div>
 
@@ -201,35 +301,110 @@ const FragrancePage = () => {
             <div className="space-y-8 pt-8 border-t">
               <h3 className="text-lg font-medium">Reviews</h3>
 
-              {/* Sign In / Sign Up Buttons */}
-              <div className="flex flex-col justify-center items-center space-y-4 py-8">
-                <Button variant="outline" className="w-36">
-                  Sign In
-                </Button>
-              </div>
+              {/* Write Review Section */}
+              {user ? (
+                <div className="space-y-6 bg-card p-6 rounded-lg border">
+                  <Textarea
+                    placeholder="Write your review..."
+                    value={newReview.comment}
+                    onChange={(e) =>
+                      setNewReview((prev) => ({
+                        ...prev,
+                        comment: e.target.value,
+                      }))
+                    }
+                  />
+                  <div className="space-y-4">
+                    {renderMetric(
+                      <Droplets className="h-4 w-4" />,
+                      "Longevity",
+                      newReview.longevity,
+                      10,
+                      (value) =>
+                        setNewReview((prev) => ({ ...prev, longevity: value })),
+                    )}
+                    {renderMetric(
+                      <Wind className="h-4 w-4" />,
+                      "Sillage",
+                      newReview.sillage,
+                      10,
+                      (value) =>
+                        setNewReview((prev) => ({ ...prev, sillage: value })),
+                    )}
+                    {renderMetric(
+                      <Coins className="h-4 w-4" />,
+                      "Value for Money",
+                      newReview.valueForMoney,
+                      5,
+                      (value) =>
+                        setNewReview((prev) => ({
+                          ...prev,
+                          valueForMoney: value,
+                        })),
+                    )}
+                  </div>
+                  <Button
+                    onClick={handleReviewSubmit}
+                    disabled={createReviewMutation.isPending}
+                  >
+                    {createReviewMutation.isPending
+                      ? "Submitting..."
+                      : "Submit Review"}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col justify-center items-center space-y-4 py-8">
+                  <p className="text-muted-foreground">
+                    Sign in to write a review
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAuthModal(true)}
+                  >
+                    Sign In
+                  </Button>
+                </div>
+              )}
 
               {/* Display Reviews */}
-              <div className="space-y-4">
-                {reviews.map((review, index) => (
-                  <div key={index} className="p-4 border rounded-md">
-                    <div className="flex items-center gap-2">
-                      <strong>{review.username}</strong>
+              {isLoadingReviews ? (
+                <div>Loading reviews...</div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews?.map((review) => (
+                    <div key={review.id} className="p-4 border rounded-md">
+                      <div className="flex items-center gap-2">
+                        <strong>{review.profiles?.username}</strong>
+                      </div>
+                      <div className="mt-2 text-muted-foreground">
+                        <p>
+                          <strong>Sillage:</strong> {review.sillage}/10
+                        </p>
+                        <p>
+                          <strong>Longevity:</strong> {review.longevity}/10
+                        </p>
+                        <p>
+                          <strong>Value for Money:</strong>{" "}
+                          {review.value_for_money}/5
+                        </p>
+                      </div>
+                      <p className="mt-2 text-muted-foreground">
+                        {review.comment}
+                      </p>
                     </div>
-                    <div className="mt-2 text-muted-foreground">
-                      <p><strong>Sillage:</strong> {review.sillage}/5</p>
-                      <p><strong>Longevity:</strong> {review.longevity}/5</p>
-                      <p><strong>Value for Money:</strong> {review.valueForMoney}/5</p>
-                    </div>
-                    <p className="mt-2 text-muted-foreground">{review.comment}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </main>
 
       <Footer />
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 };
