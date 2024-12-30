@@ -4,12 +4,6 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import AuthModal from "@/components/auth/AuthModal";
 import { supabase } from "@/lib/supabase";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 
@@ -48,6 +42,15 @@ const Header = () => {
 
       {/* Navigation Links */}
       <nav className="flex gap-8 mt-4 items-center">
+        {/* Home Link */}
+        <Link
+          to="/"
+          className="text-lg font-small text-muted-foreground hover:underline transition-all"
+        >
+          Home
+        </Link>
+
+        {/* Search Link */}
         <Link
           to="/search"
           className="text-lg font-small text-muted-foreground hover:underline transition-all"
@@ -56,30 +59,29 @@ const Header = () => {
         </Link>
 
         {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>
-                    {profile?.username?.[0]?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link to={`/profile/${user.id}`} className="cursor-pointer">
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="cursor-pointer"
-              >
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-4">
+            {/* Profile Avatar and Text */}
+            <Link
+              to={`/profile/${user.id}`}
+              className="flex items-center gap-2 text-lg font-small text-muted-foreground"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>
+                  {profile?.username?.[0]?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              Profile
+            </Link>
+
+            {/* Logout Button */}
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="text-lg font-small text-muted-foreground hover:underline transition-all"
+            >
+              Logout
+            </Button>
+          </div>
         ) : (
           <Button
             variant="ghost"

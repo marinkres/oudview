@@ -25,7 +25,7 @@ const AIRecommendationSection = () => {
             </div>
             <div>
               <button className="py-3 px-6 bg-gray-800 text-white rounded-lg hover:bg-gray-700">
-                Explore Recommendations
+                Coming soon!
               </button>
             </div>
           </div>
