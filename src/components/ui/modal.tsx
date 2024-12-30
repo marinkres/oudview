@@ -13,8 +13,7 @@ export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg w-full max-w-lg">
         <div className="flex justify-between">
-          <h2 className="text-xl font-medium">Modal Header</h2>
-          <button onClick={onClose} className="text-lg">×</button>
+          <h2 className="text-xl font-medium">Collection</h2>
         </div>
         <div className="mt-4">
           {children}

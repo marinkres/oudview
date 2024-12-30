@@ -10,19 +10,17 @@ import PerfumeGrid from "../catalog/PerfumeGrid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal, ModalHeader, ModalBody, ModalFooter, ModalCloseButton } from "@/components/ui/modal";
+import { Card, CardContent } from "@/components/ui/card";
 
 const ProfilePage = () => {
   const { id } = useParams<{ id: string }>();
 
-  // State for search input and filtered fragrances
-  const [searchTerm, setSearchTerm] = useState<string>(""); 
-  const [filteredFragrances, setFilteredFragrances] = useState<any[]>([]); // State for filtered fragrances
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false); // State to control modal visibility
-
-  // State for user's collection of fragrances
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filteredFragrances, setFilteredFragrances] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userCollection, setUserCollection] = useState<any[]>([]);
 
-  // Fetch profile data
   const { data: profile } = useQuery({
     queryKey: ["profile", id],
     queryFn: async () => {
@@ -36,7 +34,6 @@ const ProfilePage = () => {
     },
   });
 
-  // Fetch reviews data
   const { data: reviews } = useQuery({
     queryKey: ["userReviews", id],
     queryFn: async () => {
@@ -49,7 +46,6 @@ const ProfilePage = () => {
     },
   });
 
-  // Fetch all fragrances (for searching)
   const { data: allFragrances } = useQuery({
     queryKey: ["allFragrances"],
     queryFn: async () => {
@@ -59,7 +55,6 @@ const ProfilePage = () => {
     },
   });
 
-  // Fetch user's collection (fragrances)
   const { data: userCollectionData } = useQuery({
     queryKey: ["userCollection", id],
     queryFn: async () => {
@@ -78,26 +73,41 @@ const ProfilePage = () => {
     }
   }, [userCollectionData]);
 
-  // Handle the search functionality
   useEffect(() => {
     if (searchTerm === "") {
-      setFilteredFragrances([]); // No results if search is empty
+      setFilteredFragrances([]);
     } else {
-      // Filter fragrances based on name and limit to the top 2
       const filtered = allFragrances?.filter((fragrance: any) =>
         fragrance.name.toLowerCase().includes(searchTerm.toLowerCase())
-      ).slice(0, 2); // Only keep the top 2 results
+      ).slice(0, 2);
 
       setFilteredFragrances(filtered || []);
     }
   }, [searchTerm, allFragrances]);
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    fetchCurrentUser();
+  }, []);
+
   const handleAddToCollection = (fragranceId: string) => {
-    // Add fragrance to user's collection in the database
+    if (!currentUserId) {
+      console.error("No user is currently logged in");
+      return;
+    }
+
+    if (currentUserId !== id) {
+      console.error("You can only add fragrances to your own collection");
+      return;
+    }
+
     const addFragrance = async () => {
       const { error } = await supabase
         .from("collections")
-        .insert([{ user_id: id, fragrance_id: fragranceId }]);
+        .insert([{ user_id: currentUserId, fragrance_id: fragranceId }]);
       if (error) {
         console.error("Error adding fragrance to collection", error);
       } else {
@@ -105,7 +115,7 @@ const ProfilePage = () => {
           ...prevCollection,
           allFragrances?.find((fragrance) => fragrance.id === fragranceId),
         ]);
-        setIsModalOpen(false); // Close the modal after adding
+        setIsModalOpen(false);
       }
     };
 
@@ -117,7 +127,6 @@ const ProfilePage = () => {
       <Header />
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-6 py-12">
-          {/* Profile Header */}
           <div className="flex items-center gap-6 mb-12">
             <Avatar className="h-24 w-24">
               <AvatarImage src={profile?.avatar_url} />
@@ -131,20 +140,18 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Tabs */}
           <Tabs defaultValue="reviews">
             <TabsList>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
               <TabsTrigger value="collection">Collection</TabsTrigger>
             </TabsList>
 
-            {/* Reviews Tab */}
             <TabsContent value="reviews" className="mt-6">
               <div className="grid gap-6">
                 {reviews?.map((review) => (
                   <div key={review.id} className="border rounded-lg p-6">
                     <h3 className="text-xl font-medium mb-2">
-                      <a href={`/fragrance/${review.fragrances.id}`} className="hover:text-blue-500">
+                      <a href={`/fragrance/${review.fragrances.id}`} className="hover:text-grey-500">
                         {review.fragrances.name}
                       </a>
                     </h3>
@@ -159,29 +166,43 @@ const ProfilePage = () => {
               </div>
             </TabsContent>
 
-            {/* Collection Tab */}
             <TabsContent value="collection" className="mt-6">
-              <Button onClick={() => setIsModalOpen(true)}>Add to Collection</Button>
-              <div className="mt-6">
-                <h2 className="text-2xl font-medium">Your Collection</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-                  {userCollection.length === 0 ? (
-                    <p>No fragrances in your collection yet.</p>
-                  ) : (
-                    userCollection.map((fragrance) => (
-                      <div key={fragrance.id} className="border p-4 rounded-lg">
-                        <h3 className="text-xl font-medium">{fragrance.name}</h3>
-                      </div>
-                    ))
-                  )}
-                </div>
+              {currentUserId === id && (
+                <Button onClick={() => setIsModalOpen(true)} className="mb-6">Add to Collection</Button>
+              )}
+              <div>
+                <h2 className="text-2xl font-medium mb-4">
+                  {currentUserId === id ? "Your Collection" : `${profile?.username}'s Collection`}
+                </h2>
+                {userCollection.length === 0 ? (
+                  <p className="text-muted-foreground">
+                    {currentUserId === id
+                      ? "No fragrances in your collection yet."
+                      : `No fragrances in ${profile?.username}'s collection yet.`}
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {userCollection.map((fragrance) => (
+                      <Card key={fragrance.id} className="overflow-hidden">
+ 
+                        <CardContent className="p-4">
+                          <h3 className="text-lg font-semibold mb-2">{fragrance.name}</h3>
+                          <p className="text-sm text-muted-foreground mb-2">{fragrance.brand}</p>
+                          <div className="flex justify-between text-sm">
+                            <span>{fragrance.category}</span>
+                            <span>{fragrance.release_year}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
         </div>
       </main>
 
-      {/* Modal for Searching and Adding Fragrances */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ModalHeader>Search for Fragrances</ModalHeader>
         <ModalBody>
@@ -224,3 +245,4 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+
