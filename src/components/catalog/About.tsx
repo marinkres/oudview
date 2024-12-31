@@ -7,7 +7,7 @@ const About = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <main className="flex-1 max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 space-y-8">
-        <h1 className="text-4xl font-bold mb-8">About Us</h1>
+        <h1 className="text-4xl font-light mb-8">About Us</h1>
         <div className="space-y-6">
           <p>
             Welcome to Oudview, your ultimate destination for fragrance aficionados. Our platform offers expert-curated reviews and insights into the world of perfumes and colognes, providing in-depth analysis and exclusive perspectives on a wide range of scents.
@@ -21,7 +21,7 @@ const About = () => {
           <p>
             Join us on this olfactory journey and discover the finest fragrances the world has to offer. Let's explore the art of perfumery together with insights from those who truly understand the magic of scents.
           </p>
-          <h2 className="text-2xl font-semibold mt-8">Our Values</h2>
+          <h2 className="text-2xl font-light mt-8">Our Values</h2>
           <ul className="list-disc list-inside space-y-2">
             <li>Integrity: We uphold the highest standards of honesty and fairness in our reviews.</li>
             <li>Expertise: Our curators are seasoned experts with deep knowledge and passion for fragrances.</li>

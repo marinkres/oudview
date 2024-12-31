@@ -40,7 +40,7 @@ const Home = () => {
 
             <Link
   to="/search"
-  className="inline-block mt-4 px-8 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+  className="py-3 px-6 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
 >
   Search Fragrances
 </Link>
