@@ -5,6 +5,7 @@ import SearchBar from "./catalog/SearchBar";
 import PerfumeGrid from "./catalog/PerfumeGrid";
 import FragranceOfTheDay from "./catalog/FragranceOfTheDay";
 import AIRecommendationSection from "./catalog/AIRecommendationSection";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -36,14 +37,19 @@ const Home = () => {
               "Perfume is the art that makes memory speak." - Francis Kurkdjian
             </blockquote>
             <p className="text-lg mb-6">Discover the best scents curated by our experts.</p>
-            <a href="/search" className="inline-block mt-4 px-6 py-3 bg-primary text-white font-medium rounded hover:bg-primary-dark transition">
-              Search Fragrances
-            </a>
+
+            <Link
+  to="/search"
+  className="inline-block mt-4 px-8 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+>
+  Search Fragrances
+</Link>
+
           </div>
         </div>
 
         {/* Fragrance of the Day and AI Recommendations */}
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-0 mt-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
           <FragranceOfTheDay />
           <AIRecommendationSection />
         </div>

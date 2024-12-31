@@ -1,5 +1,6 @@
 import React from "react";
-import { Github } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Instagram, Facebook } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -17,9 +18,11 @@ const Footer = () => {
             <h3 className="text-lg font-medium">Links</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="/about" className="hover:text-primary transition-colors">
-                  About
-                </a>
+                <Link
+                  to="/about"
+                    >
+                    About
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-primary transition-colors">
@@ -38,12 +41,20 @@ const Footer = () => {
             <h3 className="text-lg font-medium">Connect</h3>
             <div className="flex items-center space-x-4">
               <a
-                href="https://github.com"
+                href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
-                <Github className="h-5 w-5" />
+                <Facebook className="h-5 w-5" />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Instagram className="h-5 w-5" />
               </a>
             </div>
           </div>
