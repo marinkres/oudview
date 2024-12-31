@@ -2,7 +2,8 @@ import React from "react";
 import { Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { perfumes } from "@/lib/data/perfumes";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useDebouncedCallback } from "use-debounce";
 
 interface SearchBarProps {
   onSearch?: (term: string) => void;
@@ -31,21 +33,79 @@ const SearchBar = ({
   onSearch = () => {},
   onFilterChange = () => {},
 }: SearchBarProps) => {
+  // Fetch all fragrances to get unique values
+  const { data: fragrances } = useQuery({
+    queryKey: ["fragrances-metadata"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fragrances")
+        .select("brand, top_notes, heart_notes, base_notes, concentration");
+
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Get unique brands
-  const brands = Array.from(new Set(perfumes.map((p) => p.brand)));
+  const brands = React.useMemo(() => {
+    if (!fragrances) return [];
+    const uniqueBrands = new Set<string>();
+    fragrances.forEach((f) => {
+      if (f.brand) uniqueBrands.add(f.brand);
+    });
+    return Array.from(uniqueBrands).sort();
+  }, [fragrances]);
 
   // Get unique notes
-  const allNotes = new Set<string>();
-  perfumes.forEach((p) => {
-    [...p.topNotes, ...p.heartNotes, ...p.baseNotes].forEach((note) => {
-      allNotes.add(note);
+  const notes = React.useMemo(() => {
+    if (!fragrances) return [];
+    const allNotes = new Set<string>();
+    fragrances.forEach((f) => {
+      [
+        ...(f.top_notes || []),
+        ...(f.heart_notes || []),
+        ...(f.base_notes || []),
+      ].forEach((note) => {
+        if (note) allNotes.add(note);
+      });
     });
-  });
-  const notes = Array.from(allNotes);
+    return Array.from(allNotes).sort();
+  }, [fragrances]);
 
   // Get unique concentrations
-  const concentrations = Array.from(
-    new Set(perfumes.map((p) => p.concentration)),
+  const concentrations = React.useMemo(() => {
+    if (!fragrances) return [];
+    const uniqueConcentrations = new Set<string>();
+    fragrances.forEach((f) => {
+      if (f.concentration) uniqueConcentrations.add(f.concentration);
+    });
+    return Array.from(uniqueConcentrations).sort();
+  }, [fragrances]);
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    onSearch(value);
+  }, 300);
+
+  const handleBrandChange = React.useCallback(
+    (value: string) => {
+      onFilterChange({ brand: value === "all" ? "" : value });
+    },
+    [onFilterChange],
+  );
+
+  const handleConcentrationChange = React.useCallback(
+    (value: string) => {
+      onFilterChange({ concentration: value === "all" ? "" : value });
+    },
+    [onFilterChange],
+  );
+
+  const handleNotesChange = React.useCallback(
+    (value: string) => {
+      onFilterChange({ notes: value === "all" ? [] : [value] });
+    },
+    [onFilterChange],
   );
 
   return (
@@ -56,7 +116,7 @@ const SearchBar = ({
           <Input
             placeholder="Search fragrances..."
             className="pl-10 w-full"
-            onChange={(e) => onSearch(e.target.value)}
+            onChange={(e) => debouncedSearch(e.target.value)}
           />
         </div>
 
@@ -71,13 +131,12 @@ const SearchBar = ({
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Brand</label>
-                <Select
-                  onValueChange={(value) => onFilterChange({ brand: value })}
-                >
+                <Select onValueChange={handleBrandChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select brand" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All Brands</SelectItem>
                     {brands.map((brand) => (
                       <SelectItem key={brand} value={brand}>
                         {brand}
@@ -89,15 +148,12 @@ const SearchBar = ({
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Concentration</label>
-                <Select
-                  onValueChange={(value) =>
-                    onFilterChange({ concentration: value })
-                  }
-                >
+                <Select onValueChange={handleConcentrationChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select concentration" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All Concentrations</SelectItem>
                     {concentrations.map((concentration) => (
                       <SelectItem key={concentration} value={concentration}>
                         {concentration}
@@ -109,13 +165,12 @@ const SearchBar = ({
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Notes</label>
-                <Select
-                  onValueChange={(value) => onFilterChange({ notes: [value] })}
-                >
+                <Select onValueChange={handleNotesChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select notes" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All Notes</SelectItem>
                     {notes.map((note) => (
                       <SelectItem key={note} value={note}>
                         {note}
@@ -132,4 +187,4 @@ const SearchBar = ({
   );
 };
 
-export default SearchBar;
+export default React.memo(SearchBar);

@@ -16,6 +16,7 @@ interface PerfumeCardProps {
   gender?: "Masculine" | "Feminine" | "Unisex";
   imageUrl?: string;
   year?: number;
+  instanceId?: string; // Add instanceId for unique keys
 }
 
 const PerfumeCard = ({
@@ -30,25 +31,31 @@ const PerfumeCard = ({
   priceValue = 4,
   gender = "Unisex",
   year = 2020,
+  instanceId = Math.random().toString(36).substring(7), // Generate random ID if not provided
 }: PerfumeCardProps) => {
   const navigate = useNavigate();
 
-  const renderMetric = (
-    icon: React.ReactNode,
-    value: number,
-    max: number = 10,
-  ) => (
-    <div className="flex items-center gap-2">
-      {icon}
-      <div className="flex gap-0.5">
-        {Array.from({ length: max }).map((_, i) => (
-          <div
-            key={i}
-            className={`w-1 h-3 rounded-sm ${i < value ? "bg-primary/30" : "bg-primary/5"}`}
-          />
-        ))}
+  const renderMetric = React.useCallback(
+    (icon: React.ReactNode, value: number, max: number = 10) => (
+      <div className="flex items-center gap-2">
+        {icon}
+        <div className="flex gap-0.5">
+          {Array.from({ length: max }).map((_, i) => (
+            <div
+              key={`${instanceId}-${id}-metric-${i}`}
+              className={`w-1 h-3 rounded-sm ${i < value ? "bg-primary/30" : "bg-primary/5"}`}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+    ),
+    [id, instanceId],
+  );
+
+  // Combine and slice notes once
+  const displayNotes = React.useMemo(
+    () => [...topNotes, ...heartNotes, ...baseNotes].slice(0, 6),
+    [topNotes, heartNotes, baseNotes],
   );
 
   return (
@@ -75,18 +82,16 @@ const PerfumeCard = ({
 
           {/* Notes visualization */}
           <div className="flex gap-2">
-            {[...topNotes, ...heartNotes, ...baseNotes]
-              .slice(0, 6)
-              .map((_, i) => (
-                <div
-                  key={i}
-                  className="w-1 h-12 bg-primary/20 group-hover:bg-primary/40 transition-all duration-500"
-                  style={{
-                    transform: `scaleY(${1 - i * 0.1}) rotate(${i * 5}deg)`,
-                    transformOrigin: "bottom",
-                  }}
-                />
-              ))}
+            {displayNotes.map((_, i) => (
+              <div
+                key={`${instanceId}-${id}-note-${i}`}
+                className="w-1 h-12 bg-primary/20 group-hover:bg-primary/40 transition-all duration-500"
+                style={{
+                  transform: `scaleY(${1 - i * 0.1}) rotate(${i * 5}deg)`,
+                  transformOrigin: "bottom",
+                }}
+              />
+            ))}
           </div>
 
           <div className="space-y-2 pt-2 border-t">
@@ -113,4 +118,4 @@ const PerfumeCard = ({
   );
 };
 
-export default PerfumeCard;
+export default React.memo(PerfumeCard);
