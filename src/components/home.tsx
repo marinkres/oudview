@@ -30,10 +30,22 @@ const Home = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <main className="flex-1">
+        <div className="relative bg-white text-gray-800 py-16 text-center">
+          <div className="relative z-10 p-6 max-w-2xl mx-auto">
+          <blockquote className="text-center text-xl italic text-gray-500 max-w-xl mb-4">
+              "Perfume is the art that makes memory speak." - Francis Kurkdjian
+            </blockquote>
+            <p className="text-lg mb-6">Discover the best scents curated by our experts.</p>
+            <a href="/search" className="inline-block mt-4 px-6 py-3 bg-primary text-white font-medium rounded hover:bg-primary-dark transition">
+              Search Fragrances
+            </a>
+          </div>
+        </div>
+
         {/* Fragrance of the Day and AI Recommendations */}
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-0 mt-8">
-          <AIRecommendationSection />
           <FragranceOfTheDay />
+          <AIRecommendationSection />
         </div>
         <div className="text-center max-w-7xl mx-auto gap-8 mb-12">
           <h2>Fragrances</h2>
