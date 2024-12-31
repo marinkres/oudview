@@ -142,7 +142,7 @@ const SignUpForm = ({ onSuccess }: SignUpFormProps) => {
         )}
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Creating account..." : "Sign Up"}
+        {isLoading ? "Creating account..." : "Apply"}
       </Button>
     </form>
   );

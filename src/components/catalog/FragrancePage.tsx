@@ -392,75 +392,26 @@ const FragrancePage = () => {
               )}
             </div>
 
-            {/* Reviews Section */}
-            <div className="space-y-8 pt-8 border-t">
-              <h3 className="text-lg font-medium">Reviews</h3>
-
-              {/* Write Review Section */}
-              {user ? (
-                <div className="space-y-6 bg-card p-6 rounded-lg border">
-                  <Textarea
-                    placeholder="Write your review..."
-                    value={newReview.comment}
-                    onChange={(e) =>
-                      setNewReview((prev) => ({
-                        ...prev,
-                        comment: e.target.value,
-                      }))
-                    }
-                  />
-                  <div className="space-y-4">
-                    {renderMetric(
-                      <Droplets className="h-4 w-4" />,
-                      "Longevity",
-                      newReview.longevity,
-                      10,
-                      (value) =>
-                        setNewReview((prev) => ({ ...prev, longevity: value })),
-                    )}
-                    {renderMetric(
-                      <Wind className="h-4 w-4" />,
-                      "Sillage",
-                      newReview.sillage,
-                      10,
-                      (value) =>
-                        setNewReview((prev) => ({ ...prev, sillage: value })),
-                    )}
-                    {renderMetric(
-                      <Coins className="h-4 w-4" />,
-                      "Value for Money",
-                      newReview.valueForMoney,
-                      5,
-                      (value) =>
-                        setNewReview((prev) => ({
-                          ...prev,
-                          valueForMoney: value,
-                        })),
-                    )}
-                  </div>
-                  <Button
-                    onClick={handleReviewSubmit}
-                    disabled={createReviewMutation.isPending}
-                  >
-                    {createReviewMutation.isPending
-                      ? "Submitting..."
-                      : "Submit Review"}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col justify-center items-center space-y-4 py-8">
-                  <p className="text-muted-foreground">
-                    Sign in to write a review
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAuthModal(true)}
-                  >
-                    Sign In
-                  </Button>
-                </div>
-              )}
-
+              {/* Reviews Section */} 
+              <div className="space-y-8 pt-8 border-t"> 
+                <h3 className="text-lg font-medium">Reviews</h3> 
+                <p className="text-muted-foreground"> Discover the In-Depth Reviews and Exclusive Insights from Our Expert Curators, Carefully Selected for Their Unmatched Knowledge and Experience. </p> 
+                {/* Write Review Section */} 
+                {user ? ( 
+                  <div className="space-y-6 bg-card p-6 rounded-lg border"> 
+                  <Textarea placeholder="Write your review..." value={newReview.comment} onChange={(e) => setNewReview((prev) => ({ ...prev, comment: e.target.value, })) } /> 
+                    <div className="space-y-4"> 
+                      {renderMetric( <Droplets className="h-4 w-4" />, "Longevity", newReview.longevity, 10, (value) => setNewReview((prev) => ({ ...prev, longevity: value })), )} 
+                      {renderMetric( <Wind className="h-4 w-4" />, "Sillage", newReview.sillage, 10, (value) => setNewReview((prev) => ({ ...prev, sillage: value })), )} 
+                      {renderMetric( <Coins className="h-4 w-4" />, "Value for Money", newReview.valueForMoney, 5, (value) => setNewReview((prev) => ({ ...prev, valueForMoney: value, })), )} 
+                      </div> 
+                      <Button onClick={handleReviewSubmit} disabled={createReviewMutation.isPending} > {createReviewMutation.isPending ? "Submitting..." : "Submit Review"} </Button> 
+                      </div> ) : ( 
+                        <div className="flex flex-col space-y-2"> 
+                        <p className="text-muted-foreground"> 
+                          <a href="#" onClick={() => setShowAuthModal(true)} className="underline"> Join Our Team </a> </p> 
+                          </div> 
+                        )}
               {/* Display Reviews */}
               {isLoadingReviews ? (
                 <div>Loading reviews...</div>
